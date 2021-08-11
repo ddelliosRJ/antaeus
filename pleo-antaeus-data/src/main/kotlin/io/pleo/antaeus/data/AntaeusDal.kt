@@ -7,21 +7,30 @@
 
 package io.pleo.antaeus.data
 
-import io.pleo.antaeus.models.Currency
-import io.pleo.antaeus.models.Customer
-import io.pleo.antaeus.models.Invoice
-import io.pleo.antaeus.models.InvoiceStatus
-import io.pleo.antaeus.models.Money
-import org.jetbrains.exposed.sql.Database
-import org.jetbrains.exposed.sql.insert
-import org.jetbrains.exposed.sql.select
-import org.jetbrains.exposed.sql.selectAll
-import org.jetbrains.exposed.sql.transactions.transaction
+import io.pleo.antaeus.models.*
+import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.Dispatchers
+import mu.KotlinLogging
+import org.jetbrains.exposed.sql.*
+import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
+import org.joda.time.DateTime
+import java.util.Date
 
 class AntaeusDal(private val db: Database) {
-    fun fetchInvoice(id: Int): Invoice? {
+    // Add logger
+    private val logger = KotlinLogging.logger {}
+
+    // Implement suspended transaction for sql data retrieval, advised coroutines for method structure
+    private suspend fun <T> transaction(
+        context: CoroutineDispatcher = Dispatchers.Default,
+        action: suspend Transaction.() -> T
+    ): T {
+        return newSuspendedTransaction(context, db, action)
+    }
+
+    suspend fun fetchInvoice(id: Int): Invoice? {
         // transaction(db) runs the internal query as a new database transaction.
-        return transaction(db) {
+        return transaction {
             // Returns the first invoice with matching id.
             InvoiceTable
                 .select { InvoiceTable.id.eq(id) }
@@ -30,16 +39,20 @@ class AntaeusDal(private val db: Database) {
         }
     }
 
-    fun fetchInvoices(): List<Invoice> {
-        return transaction(db) {
+    suspend fun fetchInvoices(): List<Invoice> {
+        return transaction {
             InvoiceTable
                 .selectAll()
                 .map { it.toInvoice() }
         }
     }
 
-    fun createInvoice(amount: Money, customer: Customer, status: InvoiceStatus = InvoiceStatus.PENDING): Invoice? {
-        val id = transaction(db) {
+    suspend fun createInvoice(
+        amount: Money,
+        customer: Customer,
+        status: InvoiceStatus = InvoiceStatus.PENDING
+    ): Invoice? {
+        val id = transaction {
             // Insert the invoice and returns its new id.
             InvoiceTable
                 .insert {
@@ -53,8 +66,20 @@ class AntaeusDal(private val db: Database) {
         return fetchInvoice(id)
     }
 
-    fun fetchCustomer(id: Int): Customer? {
-        return transaction(db) {
+    suspend fun updateInvoiceStatus(id: Int, status: InvoiceStatus): Invoice? {
+        val invoiceId = transaction {
+            // Update invoice status
+            InvoiceTable
+                .update({ InvoiceTable.id eq id }) {
+                    it[this.status] = status.toString()
+                }
+        }
+
+        return fetchInvoice(invoiceId)
+    }
+
+    suspend fun fetchCustomer(id: Int): Customer? {
+        return transaction {
             CustomerTable
                 .select { CustomerTable.id.eq(id) }
                 .firstOrNull()
@@ -62,16 +87,16 @@ class AntaeusDal(private val db: Database) {
         }
     }
 
-    fun fetchCustomers(): List<Customer> {
-        return transaction(db) {
+    suspend fun fetchCustomers(): List<Customer> {
+        return transaction {
             CustomerTable
                 .selectAll()
                 .map { it.toCustomer() }
         }
     }
 
-    fun createCustomer(currency: Currency): Customer? {
-        val id = transaction(db) {
+    suspend fun createCustomer(currency: Currency): Customer? {
+        val id = transaction {
             // Insert the customer and return its new id.
             CustomerTable.insert {
                 it[this.currency] = currency.toString()
@@ -80,4 +105,52 @@ class AntaeusDal(private val db: Database) {
 
         return fetchCustomer(id)
     }
+
+    suspend fun fetchPayments(invoiceId: Int): List<Payment> {
+        return transaction(Dispatchers.IO) {
+            PaymentTable
+                .select { PaymentTable.invoiceId.eq(invoiceId) }
+                .map { it.toPayment() }
+        }
+    }
+
+    suspend fun fetchPayment(id: Int): Payment? {
+        return transaction(Dispatchers.IO) {
+            PaymentTable
+                .select { PaymentTable.id eq id }
+                .firstOrNull()
+                ?.toPayment()
+        }
+    }
+
+    suspend fun createPayment(
+        amount: Money,
+        invoice: Invoice,
+        chargeSuccess: Boolean = false,
+        chargeDate: Date = Date()
+    ): Int {
+        return transaction {
+            addLogger(StdOutSqlLogger)
+            logger.info { "Creating new payment entry for invoice: ${invoice.id}" }
+
+            // Insert the invoice into the PaymentTable and return its new id.
+            PaymentTable
+                .insert {
+                    it[value] = amount.value
+                    it[currency] = amount.currency.toString()
+                    it[this.chargeDate] = DateTime(chargeDate)
+                    it[this.chargeSuccess] = chargeSuccess
+                    it[invoiceId] = invoice.id
+                } get PaymentTable.id
+        }
+    }
+
+    fun updatePaymentStatus(id: Int, chargeSuccess: Boolean, chargeDate: Date): Int {
+        return PaymentTable
+            .update({ PaymentTable.id eq id }) {
+                it[this.chargeSuccess] = chargeSuccess
+                it[this.chargeDate] = DateTime(chargeDate)
+            }
+    }
+
 }

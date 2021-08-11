@@ -19,3 +19,12 @@ object CustomerTable : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val currency = varchar("currency", 3)
 }
+
+object PaymentTable: Table() {
+    val id = integer("id").autoIncrement().primaryKey()
+    val invoiceId = reference("invoice_id", InvoiceTable.id)
+    val currency = varchar("currency", 3)
+    val value = decimal("value", 1000, 2)
+    val chargeDate = datetime("charge_date")
+    val chargeSuccess = bool("charge_success")
+}

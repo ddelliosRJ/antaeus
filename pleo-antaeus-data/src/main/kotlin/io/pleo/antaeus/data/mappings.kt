@@ -5,11 +5,7 @@
 
 package io.pleo.antaeus.data
 
-import io.pleo.antaeus.models.Currency
-import io.pleo.antaeus.models.Customer
-import io.pleo.antaeus.models.Invoice
-import io.pleo.antaeus.models.InvoiceStatus
-import io.pleo.antaeus.models.Money
+import io.pleo.antaeus.models.*
 import org.jetbrains.exposed.sql.ResultRow
 
 fun ResultRow.toInvoice(): Invoice = Invoice(
@@ -25,4 +21,15 @@ fun ResultRow.toInvoice(): Invoice = Invoice(
 fun ResultRow.toCustomer(): Customer = Customer(
     id = this[CustomerTable.id],
     currency = Currency.valueOf(this[CustomerTable.currency])
+)
+
+fun ResultRow.toPayment(): Payment = Payment(
+    id = this[PaymentTable.id],
+    amount = Money(
+        value = this[PaymentTable.value],
+        currency = Currency.valueOf(this[PaymentTable.currency])
+    ),
+    chargeDate = this[PaymentTable.chargeDate].toDate(),
+    chargeSuccess = this[PaymentTable.chargeSuccess],
+    invoiceId = this[PaymentTable.invoiceId]
 )
