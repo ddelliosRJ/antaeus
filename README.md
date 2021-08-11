@@ -24,7 +24,7 @@ Open the project using your favorite text editor. If you are using IntelliJ, you
 ### Building
 
 ```
-./gradlew build
+./gradlew clean build
 ```
 
 ### Running
@@ -48,6 +48,18 @@ Install docker for your platform
 ```
 docker build -t antaeus
 docker run antaeus
+```
+
+Alternatively you can run the provided scripts in the repo, which do all the job for you
+
+To build a docker container with pre-configured resources:
+```
+./docker-start.sh
+```
+
+To clean up all resources:
+```
+./docker-clean.sh
 ```
 
 ### App Structure
@@ -86,3 +98,47 @@ The code given is structured as follows. Feel free however to modify the structu
 * [Sqlite3](https://sqlite.org/index.html) - Database storage engine
 
 Happy hacking 😁!
+
+---
+# Preparation
+
+## Requirements
+
+* App needs to charge invoices the first day of the month and handle fail cases (network, currency mismatch, customer-invoice not found etc)
+* A second attempt should happen the next day, to try to charge the failed invoices again  
+* Customers should be informed about failed charges
+  
+##Complimentary requirements
+* Customer inactivity: If a customer could not be charged after some time (3 fails), he should be alerted and be set to inactive.
+* Alert and monitoring: Implement some monitoring/logging solution
+* Time zone handling: Run the billing service at a time that all customers' timezones are at the first day of the month.
+
+## Proposed Implementation
+
+* First, we are going to implement our solution without a scheduler.
+* We need to fetch all invoices per customer, attempt to charge, and change the invoice status to PAID from PENDING.
+* We also need to handle cases of failure, like network failure, double charge, customer not found etc.
+
+**One proposed way to do this is to create a third table in our database, where we are going to handle only pending invoices and update their status accordingly.**
+
+This way, our app will work like this:
+* At a scheduled time, the billing service is going to fetch all pending invoices per customer, try to charge, handle fail cases and update the table.
+
+## Scheduler proposed solutions
+
+* We can use a kron scheduler to handle our monthly billing, or 
+* We can create a docker cron job and expose a specific API endpoint to call the billing service and respond with a message. This way it's easier to expose that API to third party payment providers in the future, if it's necessary, with all necessary restrictions
+
+## Concurrency
+
+* Explore Kotlin coroutines and implement asynchronous execution
+
+## Development
+
+### 1st day 
+
+1. Build app locally
+2. Build docker image
+3. Test given scripts for docker
+4. Test endpoints (Insomnia)
+5. Understand application structure and given requirements
