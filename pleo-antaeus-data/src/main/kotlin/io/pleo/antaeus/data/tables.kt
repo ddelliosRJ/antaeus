@@ -20,7 +20,7 @@ object CustomerTable : Table() {
     val currency = varchar("currency", 3)
 }
 
-object PaymentTable: Table() {
+object PaymentTable : Table() {
     val id = integer("id").autoIncrement().primaryKey()
     val invoiceId = reference("invoice_id", InvoiceTable.id)
     val currency = varchar("currency", 3)

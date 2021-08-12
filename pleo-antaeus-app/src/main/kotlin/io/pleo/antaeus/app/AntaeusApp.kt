@@ -7,7 +7,6 @@
 
 package io.pleo.antaeus.app
 
-import getPaymentProvider
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
@@ -16,13 +15,13 @@ import io.pleo.antaeus.data.CustomerTable
 import io.pleo.antaeus.data.InvoiceTable
 import io.pleo.antaeus.data.PaymentTable
 import io.pleo.antaeus.rest.AntaeusRest
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.StdOutSqlLogger
 import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.TransactionManager
 import org.jetbrains.exposed.sql.transactions.transaction
-import setupInitialData
 import java.io.File
 import java.sql.Connection
 
@@ -51,8 +50,10 @@ fun main() {
     // Set up data access layer.
     val dal = AntaeusDal(db = db)
 
-    // Insert example data in the database.
-    setupInitialData(dal = dal)
+    runBlocking {
+        // Insert example data in the database.
+        setupInitialData(dal = dal)
+    }
 
     // Get third parties
     val paymentProvider = getPaymentProvider()

@@ -1,4 +1,6 @@
+package io.pleo.antaeus.app
 
+import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.core.external.PaymentProvider
 import io.pleo.antaeus.data.AntaeusDal
 import io.pleo.antaeus.models.Currency
@@ -9,7 +11,7 @@ import java.math.BigDecimal
 import kotlin.random.Random
 
 // This will create all schemas and setup initial data
-internal fun setupInitialData(dal: AntaeusDal) {
+internal suspend fun setupInitialData(dal: AntaeusDal) {
     val customers = (1..100).mapNotNull {
         dal.createCustomer(
             currency = Currency.values()[Random.nextInt(0, Currency.values().size)]
@@ -34,7 +36,10 @@ internal fun setupInitialData(dal: AntaeusDal) {
 internal fun getPaymentProvider(): PaymentProvider {
     return object : PaymentProvider {
         override fun charge(invoice: Invoice): Boolean {
-                return Random.nextBoolean()
+            if (Random.nextInt(100) < 5) { // mock network exceptions for random int < 5
+                throw NetworkException()
+            }
+            return Random.nextBoolean()
         }
     }
 }

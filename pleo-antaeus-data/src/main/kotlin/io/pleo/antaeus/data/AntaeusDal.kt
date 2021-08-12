@@ -30,7 +30,7 @@ class AntaeusDal(private val db: Database) {
 
     suspend fun fetchInvoice(id: Int): Invoice? {
         // transaction(db) runs the internal query as a new database transaction.
-        return transaction {
+        return transaction(Dispatchers.IO) {
             // Returns the first invoice with matching id.
             InvoiceTable
                 .select { InvoiceTable.id.eq(id) }
@@ -40,7 +40,7 @@ class AntaeusDal(private val db: Database) {
     }
 
     suspend fun fetchInvoices(): List<Invoice> {
-        return transaction {
+        return transaction(Dispatchers.IO) {
             InvoiceTable
                 .selectAll()
                 .map { it.toInvoice() }
@@ -79,7 +79,7 @@ class AntaeusDal(private val db: Database) {
     }
 
     suspend fun fetchCustomer(id: Int): Customer? {
-        return transaction {
+        return transaction(Dispatchers.IO) {
             CustomerTable
                 .select { CustomerTable.id.eq(id) }
                 .firstOrNull()
@@ -88,7 +88,7 @@ class AntaeusDal(private val db: Database) {
     }
 
     suspend fun fetchCustomers(): List<Customer> {
-        return transaction {
+        return transaction(Dispatchers.IO) {
             CustomerTable
                 .selectAll()
                 .map { it.toCustomer() }
