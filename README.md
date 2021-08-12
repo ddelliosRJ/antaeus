@@ -142,3 +142,24 @@ This way, our app will work like this:
 3. Test given scripts for docker
 4. Test endpoints (Insomnia)
 5. Understand application structure and given requirements
+
+### 2nd day
+
+1. Create a new table to handle the charging process and keep the other two intact.
+   * This way, in case of any errors, only data from the new table with be messed up, and our database would be safe.
+2. Dig into coroutines - (maybe I should have started building the solution first and them implementing async logic but anyways!)
+2. Dig deeper into coroutines - they probably seem the right thing to do
+3. Implement logic into project - suspend in methods, runBlocking, etc. Search a lot online, still trying to figure out how to implement properly
+4. Try a first approach into constructing the billing service
+    * As it is now, it will try to fetch an invoice, create a Payment table and change status and state if charge was successful
+    
+TODO:
+* Figure out where else coroutines should be employed
+* Refactor chargeInvoice in InvoiceService - it should only fetch pending invoices and proceed with payments 
+* Add several safety locks - double charge, currency mismatch, etc
+* Create proper tests
+
+FUTURE TODO:
+*Scheduler*
+* I tend to lean towards cron job which calls and exposed API to do the charging versus internal scheduler
+* This way we can use the API as wished, and rely on the cron job rather than an internal scheduler
