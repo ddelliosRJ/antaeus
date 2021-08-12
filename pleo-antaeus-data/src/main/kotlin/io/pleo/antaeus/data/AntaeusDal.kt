@@ -21,7 +21,7 @@ class AntaeusDal(private val db: Database) {
     private val logger = KotlinLogging.logger {}
 
     // Implement suspended transaction for sql data retrieval, advised coroutines for method structure
-    private suspend fun <T> transaction(
+    suspend fun <T> transaction(
         context: CoroutineDispatcher = Dispatchers.Default,
         action: suspend Transaction.() -> T
     ): T {
