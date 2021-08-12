@@ -4,6 +4,7 @@ import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.kotlin
 
 const val junitVersion = "5.6.0"
+const val coroutinesVersion = "1.5.1"
 
 /**
  * Configures the current project as a Kotlin project by adding the Kotlin `stdlib` as a dependency.
@@ -12,6 +13,8 @@ fun Project.kotlinProject() {
     dependencies {
         // Kotlin libs
         "implementation"(kotlin("stdlib"))
+        "implementation"("org.jetbrains.kotlinx:kotlinx-coroutines-core:$coroutinesVersion")
+
 
         // Logging
         "implementation"("org.slf4j:slf4j-simple:1.7.30")
@@ -24,6 +27,10 @@ fun Project.kotlinProject() {
         "testImplementation"("org.junit.jupiter:junit-jupiter-api:$junitVersion")
         "testImplementation"("org.junit.jupiter:junit-jupiter-params:$junitVersion")
         "runtime"("org.junit.jupiter:junit-jupiter-engine:$junitVersion")
+
+        // Kotlin Coroutines
+        "testImplementation"("org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion")
+
     }
 }
 
