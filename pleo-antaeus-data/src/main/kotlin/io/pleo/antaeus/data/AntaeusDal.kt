@@ -29,7 +29,7 @@ class AntaeusDal(private val db: Database) {
     }
 
     suspend fun fetchInvoice(id: Int): Invoice? {
-        // transaction(db) runs the internal query as a new database transaction.
+        // transaction runs the internal query as a new database transaction.
         return transaction(Dispatchers.IO) {
             // Returns the first invoice with matching id.
             InvoiceTable
@@ -53,6 +53,9 @@ class AntaeusDal(private val db: Database) {
         status: InvoiceStatus = InvoiceStatus.PENDING
     ): Invoice? {
         val id = transaction {
+            addLogger(StdOutSqlLogger)
+            // TODO:Maybe logging here is too much noise because of the amount of invoices?
+            logger.info { "Creating new invoice for customer: ${customer.id} with status [$status]" }
             // Insert the invoice and returns its new id.
             InvoiceTable
                 .insert {
@@ -97,6 +100,8 @@ class AntaeusDal(private val db: Database) {
 
     suspend fun createCustomer(currency: Currency): Customer? {
         val id = transaction {
+            addLogger(StdOutSqlLogger)
+            logger.info { "Creating new customer with currency: [$currency]" }
             // Insert the customer and return its new id.
             CustomerTable.insert {
                 it[this.currency] = currency.toString()

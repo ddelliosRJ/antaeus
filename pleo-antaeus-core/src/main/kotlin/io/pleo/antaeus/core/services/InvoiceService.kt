@@ -26,7 +26,7 @@ class InvoiceService(private val dal: AntaeusDal) {
         val paymentId = dal.createPayment(invoice.amount, invoice, false, Date())
         // try to charge the invoice and return the invoice id. Change invoice status to paid.
         return dal.transaction {
-            val success = chargeAction(invoice); // check if invoice was fetched successfully
+            val success = chargeAction(invoice) // check if invoice was fetched successfully
             if (success) {
                 dal.updatePaymentStatus(paymentId, true, Date())
                 dal.updateInvoiceStatus(invoice.id, InvoiceStatus.PAID)
