@@ -3,7 +3,7 @@ import org.gradle.kotlin.dsl.dependencies
 import org.gradle.kotlin.dsl.kotlin
 
 const val junitVersion = "5.7.0"
-const val coroutinesVersion = "1.4.0"
+const val coroutinesVersion = "1.3.5"
 const val h2Version = "1.4.199"
 
 /**
