@@ -1,5 +1,6 @@
 package io.pleo.antaeus.app
 
+import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.NetworkException
 import io.pleo.antaeus.core.external.PaymentProvider
 import io.pleo.antaeus.models.Invoice
@@ -11,6 +12,9 @@ internal fun getPaymentProvider(): PaymentProvider {
         override fun charge(invoice: Invoice): Boolean {
             if (Random.nextInt(100) < 5) { // mock network exceptions for random int < 5
                 throw NetworkException()
+            }
+            if (Random.nextInt(100) < 5) {
+                throw CurrencyMismatchException(invoiceId = invoice.id, customerId = invoice.customerId)
             }
             return Random.nextBoolean()
         }

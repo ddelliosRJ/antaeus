@@ -11,13 +11,17 @@ import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
 import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
 import io.pleo.antaeus.core.exceptions.EntityNotFoundException
 import io.pleo.antaeus.core.exceptions.InvoiceNotFoundException
+import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
 import kotlinx.coroutines.runBlocking
 
 class AntaeusRest(
+
     private val invoiceService: InvoiceService,
-    private val customerService: CustomerService
+    private val customerService: CustomerService,
+    private val billingService: BillingService
+
 ) : Runnable {
 
     override fun run() {
@@ -52,7 +56,7 @@ class AntaeusRest(
             // On 404: return message
             error(404) { ctx -> ctx.json("Not Found") }
             // On 400: return message
-            error(404) { ctx -> ctx.json("Bad Request: possible currency mismatch") }
+            error(400) { ctx -> ctx.json("Bad Request: possible currency mismatch") }
             // On 404: return message
             error(500) { ctx -> ctx.json("Internal Server Error") }
         }
@@ -100,6 +104,25 @@ class AntaeusRest(
                         get(":id") {
                             runBlocking {
                                 it.json(customerService.fetch(it.pathParam("id").toInt()))
+                            }
+                        }
+                    }
+                    // expose status path to be able to fetch PENDING invoices
+                    path("status") {
+                        // URL: /rest/v1/status/{:status}
+                        get(":status") {
+                            runBlocking {
+                                it.json(invoiceService.fetchByStatus(it.pathParam("status")))
+                            }
+                        }
+                    }
+
+                    // expose status path to be able to fetch PENDING invoices
+                    path("billing") {
+                        // URL: /rest/v1/billing
+                        get {
+                            runBlocking {
+                                it.json(billingService.charge())
                             }
                         }
                     }

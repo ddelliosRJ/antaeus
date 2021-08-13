@@ -8,6 +8,7 @@
 package io.pleo.antaeus.data
 
 import io.pleo.antaeus.models.*
+import io.pleo.antaeus.models.Currency
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import mu.KotlinLogging
@@ -47,13 +48,21 @@ class AntaeusDal(private val db: Database) {
         }
     }
 
+    suspend fun fetchInvoicesByStatus(status: String): List<Invoice> {
+        return transaction(Dispatchers.IO) {
+            InvoiceTable
+                .select { InvoiceTable.status.eq(status) }
+                .map { it.toInvoice() }
+        }
+    }
+
     suspend fun createInvoice(
         amount: Money,
         customer: Customer,
         status: InvoiceStatus = InvoiceStatus.PENDING
     ): Invoice? {
         val id = transaction {
-            addLogger(StdOutSqlLogger)
+//            addLogger(StdOutSqlLogger)
             // TODO:Maybe logging here is too much noise because of the amount of invoices?
             logger.info { "Creating new invoice for customer: ${customer.id} with status [$status]" }
             // Insert the invoice and returns its new id.
@@ -69,16 +78,12 @@ class AntaeusDal(private val db: Database) {
         return fetchInvoice(id)
     }
 
-    suspend fun updateInvoiceStatus(id: Int, status: InvoiceStatus): Invoice? {
-        val invoiceId = transaction {
-            // Update invoice status
-            InvoiceTable
-                .update({ InvoiceTable.id eq id }) {
-                    it[this.status] = status.toString()
-                }
-        }
-
-        return fetchInvoice(invoiceId)
+    fun updateInvoiceStatus(id: Int, status: InvoiceStatus): Int {
+        // Update invoice status
+        return InvoiceTable
+            .update({ InvoiceTable.id eq id }) {
+                it[this.status] = status.toString()
+            }
     }
 
     suspend fun fetchCustomer(id: Int): Customer? {
@@ -157,5 +162,4 @@ class AntaeusDal(private val db: Database) {
                 it[this.chargeDate] = DateTime(chargeDate)
             }
     }
-
 }
