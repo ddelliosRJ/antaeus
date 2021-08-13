@@ -153,13 +153,34 @@ This way, our app will work like this:
 4. Try a first approach into constructing the billing service
     * As it is now, it will try to fetch an invoice, create a Payment table and change status and state if charge was successful
     
-TODO:
+**TODO:**
 * Figure out where else coroutines should be employed
 * Refactor chargeInvoice in InvoiceService - it should only fetch pending invoices and proceed with payments 
 * Add several safety locks - double charge, currency mismatch, etc
 * Create proper tests
 
-FUTURE TODO:
+**FUTURE TODO:**
 *Scheduler*
 * I tend to lean towards cron job which calls and exposed API to do the charging versus internal scheduler
 * This way we can use the API as wished, and rely on the cron job rather than an internal scheduler
+
+### 3rd day
+
+1. Second implementation of Billing service. Our app now is capable of the following:
+* it can fetch invoices by status
+* it can proceed to charge only pending invoices
+* it can simulate failures
+
+2. Expose two API paths, one for fetching invoices by status and one for running the billing process
+* each call is idempotent, meaning no invoice is going to be charged twice
+
+3. Implement checks for Invoice double charge and customer and invoice currency mismatch
+
+4. Create dockerfile configuration and bash scripts to run a docker cron the first day of the month, at 12:00 
+
+
+**TODO:**
+* Implement retries on Network failures in Invoice service
+* As it is right now, not all invoices are going to be charged with a single call, unless the Payment provider only returns true
+* Figure out how to run billing service as long as it is necessary to complete all pending payments
+* Implement proper unit testing.
