@@ -10,6 +10,7 @@ package io.pleo.antaeus.app
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
+import io.pleo.antaeus.core.services.PaymentService
 import io.pleo.antaeus.data.*
 import io.pleo.antaeus.rest.AntaeusRest
 import kotlinx.coroutines.runBlocking
@@ -65,6 +66,7 @@ fun main() {
     // Create core services
     val invoiceService = InvoiceService(dal = dal)
     val customerService = CustomerService(dal = dal)
+    val paymentService = PaymentService(dal = dal)
 
     // This is _your_ billing service to be included where you see fit
     val billingService = BillingService(
@@ -73,14 +75,11 @@ fun main() {
         customerService = customerService
     )
 
-    runBlocking {
-        // Insert example data in the database.
-        invoiceService.fetchByStatus("PENDING")
-    }
     // Create REST web service
     AntaeusRest(
         invoiceService = invoiceService,
         customerService = customerService,
+        paymentService = paymentService,
         billingService = billingService
     ).run()
 }

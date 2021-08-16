@@ -1,6 +1,9 @@
-package io.pleo.antaeus.core.services
+package io.pleo.antaeus.data
 
-import io.pleo.antaeus.models.*
+import io.pleo.antaeus.models.Currency
+import io.pleo.antaeus.models.Invoice
+import io.pleo.antaeus.models.InvoiceStatus
+import io.pleo.antaeus.models.Money
 import java.math.BigDecimal
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.random.Random
@@ -8,7 +11,6 @@ import kotlin.random.Random
 /**
  * @author Dimitris Dellios
  */
-
 
 //------------------------CREATION HELPERS-----------------------------------------
 var idCounter = AtomicInteger(1)
@@ -27,8 +29,3 @@ fun createInvoice(
     ),
     status: InvoiceStatus = randomStatus()
 ) = Invoice(id, customerId, amount, status)
-
-fun createCustomer(
-    id: Int = nextId(),
-    currency: Currency = randomCurrency()
-) = Customer(id, currency)

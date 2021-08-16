@@ -7,19 +7,18 @@ package io.pleo.antaeus.rest
 import io.javalin.Javalin
 import io.javalin.apibuilder.ApiBuilder.get
 import io.javalin.apibuilder.ApiBuilder.path
-import io.pleo.antaeus.core.exceptions.CurrencyMismatchException
-import io.pleo.antaeus.core.exceptions.CustomerNotFoundException
-import io.pleo.antaeus.core.exceptions.EntityNotFoundException
-import io.pleo.antaeus.core.exceptions.InvoiceNotFoundException
+import io.pleo.antaeus.core.exceptions.*
 import io.pleo.antaeus.core.services.BillingService
 import io.pleo.antaeus.core.services.CustomerService
 import io.pleo.antaeus.core.services.InvoiceService
+import io.pleo.antaeus.core.services.PaymentService
 import kotlinx.coroutines.runBlocking
 
 class AntaeusRest(
 
     private val invoiceService: InvoiceService,
     private val customerService: CustomerService,
+    private val paymentService: PaymentService,
     private val billingService: BillingService
 
 ) : Runnable {
@@ -45,6 +44,10 @@ class AntaeusRest(
             exception(InvoiceNotFoundException::class.java) { _, ctx ->
                 ctx.status(404)
             }
+            // PaymentNotFoundException: return 404 HTTP status code
+            exception(PaymentNotFoundException::class.java) { _, ctx ->
+                ctx.status(404)
+            }
             // InvoiceNotFoundException: return 400 HTTP status code
             exception(CurrencyMismatchException::class.java) { _, ctx ->
                 ctx.status(400)
@@ -57,7 +60,7 @@ class AntaeusRest(
             error(404) { ctx -> ctx.json("Not Found") }
             // On 400: return message
             error(400) { ctx -> ctx.json("Bad Request: possible currency mismatch") }
-            // On 404: return message
+            // On 500: return message
             error(500) { ctx -> ctx.json("Internal Server Error") }
         }
 
@@ -107,6 +110,23 @@ class AntaeusRest(
                             }
                         }
                     }
+
+                    path("payments") {
+                        // URL: /rest/v1/payments
+                        get {
+                            runBlocking {
+                                it.json(paymentService.fetchAll())
+                            }
+                        }
+
+                        // URL: /rest/v1/payments/{:id}
+                        get(":id") {
+                            runBlocking {
+                                it.json(paymentService.fetch(it.pathParam("id").toInt()))
+                            }
+                        }
+                    }
+
                     // expose status path to be able to fetch PENDING invoices
                     path("status") {
                         // URL: /rest/v1/status/{:status}
@@ -122,7 +142,7 @@ class AntaeusRest(
                         // URL: /rest/v1/billing
                         get {
                             runBlocking {
-                                it.json(billingService.charge())
+                                it.json(billingService.chargePendingInvoices())
                             }
                         }
                     }

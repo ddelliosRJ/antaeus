@@ -62,8 +62,6 @@ class AntaeusDal(private val db: Database) {
         status: InvoiceStatus = InvoiceStatus.PENDING
     ): Invoice? {
         val id = transaction {
-//            addLogger(StdOutSqlLogger)
-            // TODO:Maybe logging here is too much noise because of the amount of invoices?
             logger.info { "Creating new invoice for customer: ${customer.id} with status [$status]" }
             // Insert the invoice and returns its new id.
             InvoiceTable
@@ -116,10 +114,10 @@ class AntaeusDal(private val db: Database) {
         return fetchCustomer(id)
     }
 
-    suspend fun fetchPayments(invoiceId: Int): List<Payment> {
+    suspend fun fetchPayments(): List<Payment> {
         return transaction(Dispatchers.IO) {
             PaymentTable
-                .select { PaymentTable.invoiceId.eq(invoiceId) }
+                .selectAll()
                 .map { it.toPayment() }
         }
     }
@@ -130,6 +128,14 @@ class AntaeusDal(private val db: Database) {
                 .select { PaymentTable.id eq id }
                 .firstOrNull()
                 ?.toPayment()
+        }
+    }
+
+    suspend fun fetchPaymentByInvoiceId(invoiceId: Int): List<Payment> {
+        return transaction(Dispatchers.IO) {
+            PaymentTable
+                .select { PaymentTable.invoiceId.eq(invoiceId) }
+                .map { it.toPayment() }
         }
     }
 
