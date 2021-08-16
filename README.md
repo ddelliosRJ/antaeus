@@ -184,3 +184,18 @@ This way, our app will work like this:
 * As it is right now, not all invoices are going to be charged with a single call, unless the Payment provider only returns true
 * Figure out how to run billing service as long as it is necessary to complete all pending payments
 * Implement proper unit testing.
+
+### 4th day 
+
+1. Refactor project - remove obsolete empty lines, change method names to more meaningful ones
+2. Expose API paths to be able to fetch entities from the Payment table
+3. Implement BillingService, Antaeus DAL tests and refactor existing ones.
+4. Add cron in docker image, use supervisor to run in paraller to the app and config crontab to run on the first day of the month
+
+####Notes:
+* Supervisor is not the best possible solution, but it's an easy fix.
+* Other alternatives fetched from here: https://stackoverflow.com/a/33847142.
+* Supervisor setup and config fetched from here: https://github.com/binxio/blog-cron-supervisor-docker
+
+**TODO:**
+* Implement Rest API tests.
