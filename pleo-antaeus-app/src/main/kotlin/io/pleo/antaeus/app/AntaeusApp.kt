@@ -68,7 +68,7 @@ fun main() {
     val customerService = CustomerService(dal = dal)
     val paymentService = PaymentService(dal = dal)
 
-    // This is _your_ billing service to be included where you see fit
+    // Create billing service
     val billingService = BillingService(
         paymentProvider = paymentProvider,
         invoiceService = invoiceService,

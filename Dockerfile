@@ -3,14 +3,14 @@ FROM adoptopenjdk/openjdk11:latest
 RUN apt-get update && \
     apt-get install -y sqlite3
 
-#Install Python
+# Install Python
 RUN apt-get install -y python
 RUN apt-get install -y python3-pip
 
-#Install mjson tool
+# Install mjson tool
 RUN pip install mjson
-#
-##Install Cron and vim and supervisor
+
+# Install Cron, Supervisor and Vim
 RUN apt-get install cron -y && apt-get install vim -y && apt-get install supervisor -y
 
 # Add crontab file in the cron directory

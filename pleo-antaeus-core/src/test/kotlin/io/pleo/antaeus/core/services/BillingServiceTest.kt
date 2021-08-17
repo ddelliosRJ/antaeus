@@ -183,7 +183,7 @@ class BillingServiceTest {
         }
     }
 
-    // --------------------------------------HELPERS FOR COMPLETED PAYMENT ASSERTIONS ---------------------------------------------
+    // --------------------------------------HELPERS FOR COMPLETED PAYMENT ASSERTIONS ----------------------------------
     private suspend fun assertChargingEffort(invoice: Invoice, paymentsNumber: Int, paymentsSuccess: Boolean) {
         val payments = dal.fetchPaymentByInvoiceId(invoice.id)
         Assertions.assertEquals(paymentsNumber, payments.size)
