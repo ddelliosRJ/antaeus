@@ -104,13 +104,13 @@ Happy hacking 😁!
 
 ## Requirements
 
-* App needs to charge invoices the first day of the month and handle fail cases (network, currency mismatch, customer-invoice not found etc)
-* A second attempt should happen the next day, to try to charge the failed invoices again  
-* Customers should be informed about failed charges
+* App needs to charge invoices the first day of the month and handle fail cases (network, currency mismatch, customer-invoice not found etc).
+* A second attempt should happen the next day, to try to charge the failed invoices again.  
+* Customers should be informed about failed charges.
   
 ##Complimentary requirements
 * Customer inactivity: If a customer could not be charged after some time (3 fails), he should be alerted and be set to inactive.
-* Alert and monitoring: Implement some monitoring/logging solution
+* Alert and monitoring: Implement some monitoring/logging solution.
 * Time zone handling: Run the billing service at a time that all customers' timezones are at the first day of the month.
 
 ## Proposed Implementation
@@ -131,71 +131,111 @@ This way, our app will work like this:
 
 ## Concurrency
 
-* Explore Kotlin coroutines and implement asynchronous execution
+* Explore Kotlin coroutines and implement asynchronous execution.
 
 ## Development
 
 ### 1st day 
 
-1. Build app locally
-2. Build docker image
-3. Test given scripts for docker
-4. Test endpoints (Insomnia)
-5. Understand application structure and given requirements
+1. Build app locally.
+2. Build docker image.
+3. Test given scripts for docker.
+4. Test endpoints (Insomnia).
+5. Understand application structure and given requirements.
 
 ### 2nd day
 
 1. Create a new table to handle the charging process and keep the other two intact.
    * This way, in case of any errors, only data from the new table with be messed up, and our database would be safe.
-2. Dig into coroutines - (maybe I should have started building the solution first and them implementing async logic but anyways!)
-2. Dig deeper into coroutines - they probably seem the right thing to do
-3. Implement logic into project - suspend in methods, runBlocking, etc. Search a lot online, still trying to figure out how to implement properly
-4. Try a first approach into constructing the billing service
-    * As it is now, it will try to fetch an invoice, create a Payment table and change status and state if charge was successful
+2. Dig into coroutines - (maybe I should have started building the solution first and them implementing async logic but 
+   anyways!).
+2. Dig deeper into coroutines - they probably seem the right thing to do.
+3. Implement logic into project - suspend in methods, runBlocking, etc. Search a lot online, still trying to figure out
+   how to implement properly.
+4. Try a first approach into constructing the billing service.
+    * As it is now, it will try to fetch an invoice, create a Payment table and change status and state if charge was successful.
     
 **TODO:**
-* Figure out where else coroutines should be employed
-* Refactor chargeInvoice in InvoiceService - it should only fetch pending invoices and proceed with payments 
-* Add several safety locks - double charge, currency mismatch, etc
-* Create proper tests
+* Figure out where else coroutines should be employed.
+* Refactor chargeInvoice in InvoiceService - it should only fetch pending invoices and proceed with payments. 
+* Add several safety locks - double charge, currency mismatch, etc.
+* Create proper tests.
 
 **FUTURE TODO:**
 *Scheduler*
-* I tend to lean towards cron job which calls and exposed API to do the charging versus internal scheduler
-* This way we can use the API as wished, and rely on the cron job rather than an internal scheduler
+* I tend to lean towards cron job which calls and exposed API to do the charging versus internal scheduler.
+* This way we can use the API as wished, and rely on the cron job rather than an internal scheduler.
 
 ### 3rd day
 
 1. Second implementation of Billing service. Our app now is capable of the following:
-* it can fetch invoices by status
-* it can proceed to charge only pending invoices
-* it can simulate failures
+* it can fetch invoices by status.
+* it can proceed to charge only pending invoices.
+* it can simulate failures.
 
-2. Expose two API paths, one for fetching invoices by status and one for running the billing process
-* each call is idempotent, meaning no invoice is going to be charged twice
+2. Expose two API paths, one for fetching invoices by status and one for running the billing process.
+* each call is idempotent, meaning no invoice is going to be charged twice.
 
-3. Implement checks for Invoice double charge and customer and invoice currency mismatch
+3. Implement checks for Invoice double charge and customer and invoice currency mismatch.
 
-4. Create dockerfile configuration and bash scripts to run a docker cron the first day of the month, at 12:00 
+4. Create dockerfile configuration and bash scripts to run a docker cron the first day of the month, at 12:00. 
 
 
 **TODO:**
-* Implement retries on Network failures in Invoice service
-* As it is right now, not all invoices are going to be charged with a single call, unless the Payment provider only returns true
-* Figure out how to run billing service as long as it is necessary to complete all pending payments
+* Implement retries on Network failures in Invoice service.
+* As it is right now, not all invoices are going to be charged with a single call, unless the Payment provider only 
+  returns true.
+* Figure out how to run billing service as long as it is necessary to complete all pending payments.
 * Implement proper unit testing.
 
 ### 4th day 
 
-1. Refactor project - remove obsolete empty lines, change method names to more meaningful ones
-2. Expose API paths to be able to fetch entities from the Payment table
+1. Refactor project - remove obsolete empty lines, change method names to more meaningful ones.
+2. Expose API paths to be able to fetch entities from the Payment table.
 3. Implement BillingService, Antaeus DAL tests and refactor existing ones.
-4. Add cron in docker image, use supervisor to run in paraller to the app and config crontab to run on the first day of the month
+4. Add cron in docker image, use supervisor to run in paraller to the app and config crontab to run on the first day of 
+   the month.
 
 ####Notes:
 * Supervisor is not the best possible solution, but it's an easy fix.
 * Other alternatives fetched from here: https://stackoverflow.com/a/33847142.
-* Supervisor setup and config fetched from here: https://github.com/binxio/blog-cron-supervisor-docker
+* Supervisor setup and config fetched from here: https://github.com/binxio/blog-cron-supervisor-docker.
 
 **TODO:**
 * Implement Rest API tests.
+
+---
+
+## EDITOR NOTES
+
+As it is right now, app can run natively or as a docker image.  
+
+**To be able to run natively and test do the following:**
+1. Build and run the app.
+2. Run script `billing-cron.sh` and tail log file `/var/log/cron.log`  
+   (Hint: `./billing-cron.sh && tail -f /var/log/cron.log`).
+3. To check the cron job, add one to local environment, and make it run every couple of minutes  
+`echo "*/2 * * * * root {path-to-repo}/antaeus/billing-cron.sh` and tail logs as before.
+   
+**To run the app as a docker image do the following:**
+1. Simply run the modified `./docker-start.sh` script.  
+The modified script exploits supervisor to run a cron job parallel to the app.  
+(*There are a few alternatives but supervisor was chosen as the most straightforward*).
+2. App can be tested as above, by running the `billing-cron.sh` script with `docker exec` command.
+3. Cron job is pre-configured  to run the first day of every month, at 12:00, to try to charge invoices in the same day 
+   and avoid as much as possible timezone problems. To fix that permanently, additional cron jobs could be scheduled for 
+   several customers a day after. Cron job can be configured in `cronjob` file.
+   
+## Additional notes on the project logic
+
+App could be extended to handle possible cases that are not handled as it is.
+Additional features could involve the following:
+
+1. A second cron job could be scheduled to run after a day or two to handle payment provided failures. This way, if the 
+   provider fails or if the app crashes, a second or third attempt to charge will happen again when scheduled.
+2. No flag or alerting is integrated to inform a customer for a failed invoice. The app could do that, or the billing 
+   script to alert the customer, e.g., with an email.
+3. The customer could be set to inactive after several failures.
+4. An invoice cannot be charged twice, since only pending invoices are fetched and if the payment provider is successful,
+   meaning no errors were encountered, the invoice status will change. However, no handling exists for possible app 
+   crashes or CI/CD operations.
