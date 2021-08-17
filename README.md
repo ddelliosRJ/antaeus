@@ -150,7 +150,7 @@ This way, our app will work like this:
 2. Dig into coroutines - (maybe I should have started building the solution first and them implementing async logic but 
    anyways!).
 2. Dig deeper into coroutines - they probably seem the right thing to do.
-3. Implement logic into project - suspend in methods, runBlocking, etc. Search a lot online, still trying to figure out
+3. Implement logic into project - suspend in methods, runBlocking, etc. Searched a lot online, still trying to figure out
    how to implement properly.
 4. Try a first approach into constructing the billing service.
     * As it is now, it will try to fetch an invoice, create a Payment table and change status and state if charge was successful.
@@ -215,7 +215,11 @@ As it is right now, app can run natively or as a docker image.
 2. Run script `billing-cron.sh` and tail log file `/var/log/cron.log`  
    (Hint: `./billing-cron.sh && tail -f /var/log/cron.log`).
 3. To check the cron job, add one to local environment, make it run every couple of minutes  
-`echo "*/2 * * * * root {path-to-repo}/antaeus/billing-cron.sh` and tail logs as before.
+`echo "*/2 * * * * root {path-to-repo}/antaeus/billing-cron.sh >> /etc/crontab` and tail logs as before.
+   
+*Note:*   
+Both the `echo` command, and the `billing-cron` script need to be run with `sudo` because both the log file, 
+and the crontab require admin rights.
    
 **To run the app as a docker image do the following:**
 1. Simply run the modified `./docker-start.sh` script.  
@@ -239,3 +243,6 @@ Additional features could involve the following:
 4. An invoice cannot be charged twice, since only pending invoices are fetched and if the payment provider is successful,
    meaning no errors were encountered, the invoice status will change. However, no handling exists for possible app 
    crashes or CI/CD operations.
+5. We are assuming that the payment provider (3rd party) is idempotent, meaning it cannot double charge an invoice.
+6. No proper authentication is implemented in REST API, this one's mandatory, especially if we are going to use API with
+   an external service or expose it out of the docker container.
