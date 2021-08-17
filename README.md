@@ -108,7 +108,7 @@ Happy hacking 😁!
 * A second attempt should happen the next day, to try to charge the failed invoices again.  
 * Customers should be informed about failed charges.
   
-##Complimentary requirements
+## Complimentary requirements
 * Customer inactivity: If a customer could not be charged after some time (3 fails), he should be alerted and be set to inactive.
 * Alert and monitoring: Implement some monitoring/logging solution.
 * Time zone handling: Run the billing service at a time that all customers' timezones are at the first day of the month.
@@ -196,7 +196,7 @@ This way, our app will work like this:
 4. Add cron in docker image, use supervisor to run in paraller to the app and config crontab to run on the first day of 
    the month.
 
-####Notes:
+#### Notes:
 * Supervisor is not the best possible solution, but it's an easy fix.
 * Other alternatives fetched from here: https://stackoverflow.com/a/33847142.
 * Supervisor setup and config fetched from here: https://github.com/binxio/blog-cron-supervisor-docker.
@@ -214,7 +214,7 @@ As it is right now, app can run natively or as a docker image.
 1. Build and run the app.
 2. Run script `billing-cron.sh` and tail log file `/var/log/cron.log`  
    (Hint: `./billing-cron.sh && tail -f /var/log/cron.log`).
-3. To check the cron job, add one to local environment, and make it run every couple of minutes  
+3. To check the cron job, add one to local environment, make it run every couple of minutes  
 `echo "*/2 * * * * root {path-to-repo}/antaeus/billing-cron.sh` and tail logs as before.
    
 **To run the app as a docker image do the following:**
